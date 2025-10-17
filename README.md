@@ -48,7 +48,7 @@ training-load-monitor/
 Klonen oder herunterladen:
 
 ```bash
-git clone https://github.com/<dein-benutzername>/training-load-monitor.git
+git clone https://github.com/MZemelka90/training-load-monitor.git
 cd training-load-monitor
 ```
 

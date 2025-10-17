@@ -1,0 +1,50 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+*.log.*
+log/
+debug.log
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+
+# Build artifacts
+dist/
+build/
+coverage/
+.cache/
+.tmp/
+
+# Local database (optional — nicht versionieren!)
+database.json
+
+# Server runtime files
+pid.pid
+*.pid
+*.seed
+*.tgz
+
+# Frontend caches
+*.map
+*.tsbuildinfo
+
+# Optional: ignore uploaded images or session exports
+uploads/
+exports/

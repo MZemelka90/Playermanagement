@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Training Load Monitoring</title>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="container">
+        <h1>Training Load Monitoring</h1>
+        <nav class="nav">
+          <div class="nav-item active" data-section="dashboard">Dashboard</div>
+          <div class="nav-item" data-section="players">Spielerverwaltung</div>
+          <div class="nav-item" data-section="session">Session hinzufügen</div>
+          <div class="nav-item" data-section="data">Daten Import/Export</div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+        <!-- Dashboard -->
+        <section id="dashboard" class="section active">
+          <h2>Dashboard Übersicht</h2>
+          <div class="grid grid--4" id="stats-grid">
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="total-players">0</div>
+                <div class="stat-label">Gesamtzahl Spieler</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="total-sessions">0</div>
+                <div class="stat-label">Gesamte Sessions</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="avg-rpe">0</div>
+                <div class="stat-label">Durchschnittlicher RPE</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="avg-load">0</div>
+                <div class="stat-label">Ø Trainingsbelastung</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__body">
+                <h3>Spieler Auswahl</h3>
+                <div class="form-group">
+                  <select id="dashboard-player-select" class="form-control">
+                    <option value="">Spieler auswählen...</option>
+                  </select>
+                </div>
+                <div id="player-stats" class="hidden">
+                  <div class="grid grid--2">
+                    <div>
+                      <strong>Sessions:</strong>
+                      <div id="player-sessions">0</div>
+                    </div>
+                    <div>
+                      <strong>Ø RPE:</strong>
+                      <div id="player-avg-rpe">0</div>
+                    </div>
+                    <div>
+                      <strong>Ø Load:</strong>
+                      <div id="player-avg-load">0</div>
+                    </div>
+                    <div>
+                      <strong>Gesamtzeit:</strong>
+                      <div id="player-total-time">0 Min</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__body">
+                <h3>Training Load Verlauf</h3>
+                <div class="chart-container">
+                  <canvas id="load-chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__body">
+              <h3>Aktuelle Sessions</h3>
+              <table class="table" id="recent-sessions-table">
+                <thead>
+                  <tr>
+                    <th onclick="sortTable(0)">Datum</th>
+                    <th onclick="sortTable(1)">Spieler</th>
+                    <th onclick="sortTable(2)">Dauer (Min)</th>
+                    <th onclick="sortTable(3)">RPE</th>
+                    <th onclick="sortTable(4)">Training Load</th>
+                    <th>Notizen</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-sessions-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Players -->
+        <section id="players" class="section">
+          <h2>Spielerverwaltung</h2>
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__body">
+                <h3>Neuen Spieler hinzufügen</h3>
+                <form id="player-form">
+                  <div class="form-group">
+                    <label class="form-label" for="player-name">Spielername</label>
+                    <input type="text" id="player-name" class="form-control" required />
+                  </div>
+                  <button type="submit" class="btn btn--primary">Spieler hinzufügen</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__body">
+                <h3>Spielerliste</h3>
+                <div class="player-list" id="player-list">
+                  <p class="text-center">Keine Spieler vorhanden</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Session -->
+        <section id="session" class="section">
+          <h2>Trainingseinheit hinzufügen</h2>
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__body">
+                <h3>Session Details</h3>
+                <form id="session-form">
+                  <div class="form-group">
+                    <label class="form-label" for="session-player">Spieler auswählen</label>
+                    <select id="session-player" class="form-control" required>
+                      <option value="">Spieler auswählen...</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="session-date">Datum</label>
+                    <input type="date" id="session-date" class="form-control" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="session-duration">Trainingsdauer (Minuten)</label>
+                    <input type="number" id="session-duration" class="form-control" min="1" max="480" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="session-rpe">RPE (1-10)</label>
+                    <input type="range" id="session-rpe" class="form-control rpe-slider" min="1" max="10" value="5" />
+                    <div class="rpe-display">
+                      <div class="rpe-value" id="rpe-value">5</div>
+                      <div class="rpe-description" id="rpe-description">Hart</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="session-notes">Notizen (optional)</label>
+                    <textarea id="session-notes" class="form-control" rows="3"></textarea>
+                  </div>
+
+                  <div class="training-load" id="training-load-display">
+                    <div>Training Load:</div>
+                    <div class="training-load-value" id="calculated-load">0</div>
+                  </div>
+
+                  <button type="submit" class="btn btn--primary btn--full-width" style="margin-top: var(--space-16);">
+                    Session speichern
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="rpe-scale">
+                <h4>RPE Skala Referenz</h4>
+                <div class="rpe-scale-item"><span><strong>0:</strong> Ruhe</span></div>
+                <div class="rpe-scale-item"><span><strong>1:</strong> Sehr, sehr leicht</span></div>
+                <div class="rpe-scale-item"><span><strong>2:</strong> Leicht</span></div>
+                <div class="rpe-scale-item"><span><strong>3:</strong> Moderat</span></div>
+                <div class="rpe-scale-item"><span><strong>4:</strong> Etwas hart</span></div>
+                <div class="rpe-scale-item"><span><strong>5:</strong> Hart</span></div>
+                <div class="rpe-scale-item"><span><strong>7:</strong> Sehr hart</span></div>
+                <div class="rpe-scale-item"><span><strong>10:</strong> Maximal</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Data -->
+        <section id="data" class="section">
+          <h2>Daten Import &amp; Export</h2>
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__body">
+                <h3>Daten exportieren</h3>
+                <p>Exportieren Sie alle aktuellen Daten als JSON-Datei zur Sicherung oder zum Teilen.</p>
+                <button id="export-btn" class="btn btn--primary btn--full-width">Daten exportieren</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__body">
+                <h3>Daten importieren</h3>
+                <p>Importieren Sie eine zuvor exportierte JSON-Datei. Die Daten werden mit den vorhandenen Daten zusammengeführt.</p>
+                <div class="file-input">
+                  <input type="file" id="import-file" accept=".json" />
+                  <button class="btn btn--secondary btn--full-width">JSON-Datei auswählen</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__body">
+              <h3>Daten löschen</h3>
+              <p style="color: var(--color-error); margin-bottom: var(--space-16);">⚠️ Achtung: Diese Aktion löscht alle Spieler und Sessions unwiderruflich!</p>
+              <button id="clear-data-btn" class="btn btn--outline" style="border-color: var(--color-error); color: var(--color-error);">Alle Daten löschen</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <!-- App logic -->
+  <script src="app.js"></script>
+</body>
+</html>

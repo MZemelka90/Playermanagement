@@ -141,7 +141,11 @@ function updatePlayerLists() {
     const select = document.getElementById(selectId);
     if (!select) return;
     const currentValue = select.value;
-    select.innerHTML = '<option value="">Spieler auswählen...</option>' + players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    select.innerHTML = '<option value="">Spieler auswählen...</option>' +
+    '<option value="all">Gesamt-Team</option>' +
+    players.map(player => `<option value="${player.id}">${player.name}</option>`).join('');
+
+
     if (players.find(p => p.id === currentValue)) select.value = currentValue;
   });
 }
@@ -254,31 +258,82 @@ function updateRecentSessions() {
 function updatePlayerStats() {
   const playerId = document.getElementById('dashboard-player-select').value;
   const playerStatsDiv = document.getElementById('player-stats');
+
+  // Wenn "Gesamt-Team" gewählt ist
+  if (playerId === 'all') {
+    playerStatsDiv.classList.remove('hidden');
+
+    const allSessions = players.flatMap(p => p.sessions || []);
+    if (allSessions.length === 0) {
+      updateChart([]);
+      document.getElementById('player-sessions').textContent = '0';
+      document.getElementById('player-avg-rpe').textContent = '0';
+      document.getElementById('player-avg-load').textContent = '0';
+      document.getElementById('player-total-time').textContent = '0 Min';
+      return;
+    }
+
+    // Gruppiere alle Sessions nach Datum und summiere Training Load
+    const grouped = {};
+    allSessions.forEach(s => {
+      if (!grouped[s.date]) grouped[s.date] = { totalLoad: 0, totalRpe: 0, totalDur: 0, count: 0 };
+      grouped[s.date].totalLoad += s.trainingLoad || (s.duration * s.rpe);
+      grouped[s.date].totalRpe += s.rpe;
+      grouped[s.date].totalDur += s.duration;
+      grouped[s.date].count++;
+    });
+
+    const dates = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
+    const loads = dates.map(d => grouped[d].totalLoad);
+    const avgRpe = (Object.values(grouped).reduce((s,g)=>s+g.totalRpe,0) / Object.values(grouped).reduce((s,g)=>s+g.count,0)).toFixed(1);
+    const avgLoad = Math.round(Object.values(grouped).reduce((s,g)=>s+g.totalLoad,0) / Object.values(grouped).reduce((s,g)=>s+g.count,0));
+    const totalDur = Object.values(grouped).reduce((s,g)=>s+g.totalDur,0);
+
+    document.getElementById('player-sessions').textContent = allSessions.length;
+    document.getElementById('player-avg-rpe').textContent = avgRpe;
+    document.getElementById('player-avg-load').textContent = avgLoad;
+    document.getElementById('player-total-time').textContent = totalDur + ' Min';
+
+    // 🆕 Chart: Team-Gesamtbelastung
+    const teamSessions = dates.map(d => ({
+      date: d,
+      trainingLoad: grouped[d].totalLoad
+    }));
+    updateChart(teamSessions);
+    return;
+  }
+
+  // Standardverhalten (Einzelspieler)
   if (!playerId) {
     playerStatsDiv.classList.add('hidden');
     updateChart([]);
     return;
   }
+
   const player = players.find(p => p.id === playerId);
   if (!player) {
     playerStatsDiv.classList.add('hidden');
     updateChart([]);
     return;
   }
+
   const sessions = player.sessions || [];
   const totalSessions = sessions.length;
-  const avgRpe = totalSessions > 0 ? (sessions.reduce((s,x) => s + x.rpe,0) / totalSessions).toFixed(1) : 0;
-  const avgLoad = totalSessions > 0 ? Math.round(sessions.reduce((s,x) => s + (x.trainingLoad || x.duration * x.rpe),0) / totalSessions) : 0;
-  const totalTime = sessions.reduce((s,x) => s + x.duration, 0);
+  const avgRpe = totalSessions > 0 ? (sessions.reduce((sum, s) => sum + s.rpe, 0) / totalSessions).toFixed(1) : 0;
+  const avgLoad = totalSessions > 0 ? Math.round(sessions.reduce((sum, s) => sum + (s.trainingLoad || s.duration * s.rpe), 0) / totalSessions) : 0;
+  const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+
   document.getElementById('player-sessions').textContent = totalSessions;
   document.getElementById('player-avg-rpe').textContent = avgRpe;
   document.getElementById('player-avg-load').textContent = avgLoad;
   document.getElementById('player-total-time').textContent = totalTime + ' Min';
+
   playerStatsDiv.classList.remove('hidden');
 
-  const recentSessions = sessions.slice().sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-15);
+  const recentSessions = sessions.slice().sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-15);
   updateChart(recentSessions);
 }
+
 
 function updateChart(sessions) {
   const ctx = document.getElementById('load-chart').getContext('2d');

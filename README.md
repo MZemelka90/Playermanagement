@@ -94,29 +94,33 @@ Der Server startet standardmäßig auf:
 
 ---
 
-## 🧱 Datenstruktur (`database.json`)
+## Datenbank-Schema:
 
-Beispiel:
+```sql
+CREATE TABLE players (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-```json
-{
-  "players": [
-    {
-      "id": "p1",
-      "name": "Max Mustermann",
-      "sessions": [
-        {
-          "date": "2025-10-15",
-          "duration": 75,
-          "rpe": 7,
-          "trainingLoad": 525
-        }
-      ]
-    }
-  ]
-}
+CREATE TABLE sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  player_id TEXT NOT NULL,
+  date TEXT NOT NULL,
+  duration INTEGER NOT NULL,
+  rpe INTEGER NOT NULL,
+  training_load INTEGER NOT NULL,
+  notes TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+);
+
+CREATE TABLE metadata (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 ```
-
 ---
 
 ## 🔒 Hinweise
@@ -161,3 +165,4 @@ nodemon server.js
 
 Dieses Projekt ist unter der **MIT-Lizenz** veröffentlicht.  
 Frei nutzbar, anpassbar und erweiterbar für Trainings- und Analysezwecke.
+

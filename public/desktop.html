@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Load Tracker - Desktop</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Version Switcher */
+    .version-switcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .version-switcher-btn {
+      padding: 12px 20px;
+      background: rgba(33,128,141,0.9);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 200ms ease;
+    }
+    .version-switcher-btn:hover {
+      background: rgba(33,128,141,1);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="container">
+        <h1>⚽ Training Load Tracker <span style="font-size:14px; opacity:0.7; font-weight:400;">(Desktop)</span></h1>
+        <nav class="nav">
+          <div class="nav-item active" data-section="dashboard">Dashboard</div>
+          <div class="nav-item" data-section="players">Spieler</div>
+          <div class="nav-item" data-section="sessions">Sessions</div>
+          <div class="nav-item" data-section="settings">Einstellungen</div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+
+        <!-- DASHBOARD Section -->
+        <section id="dashboard" class="section active">
+          <h2>Dashboard Übersicht</h2>
+
+          <div class="grid grid--4">
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="total-players">0</div>
+                <div class="stat-label">Gesamtzahl Spieler</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="total-sessions">0</div>
+                <div class="stat-label">Gesamte Sessions</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="avg-rpe">0</div>
+                <div class="stat-label">Durchschnittlicher RPE</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="avg-load">0</div>
+                <div class="stat-label">Ø Trainingsbelastung</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 24px;">
+            <div class="card__header">
+              <h3>Spieler Auswahl</h3>
+            </div>
+            <div class="card__body">
+              <div class="form-group">
+                <select id="dashboard-player-select" class="form-control">
+                  <option value="">Alle Spieler</option>
+                </select>
+              </div>
+              <div id="player-stats">
+                <div class="grid grid--4">
+                  <div>
+                    <strong>Sessions:</strong> <span id="player-sessions">0</span>
+                  </div>
+                  <div>
+                    <strong>Ø RPE:</strong> <span id="player-avg-rpe">0</span>
+                  </div>
+                  <div>
+                    <strong>Ø Load:</strong> <span id="player-avg-load">0</span>
+                  </div>
+                  <div>
+                    <strong>Gesamtzeit:</strong> <span id="player-total-time">0</span> Min
+                  </div>
+                </div>
+              </div>
+
+              <!-- 🆕 Chart container -->
+              <div class="chart-container" style="margin-top:24px; position:relative; height:350px; width:100%;">
+                <canvas id="load-chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 24px;">
+            <div class="card__header">
+              <h3>Aktuelle Sessions</h3>
+            </div>
+            <div class="card__body">
+              <table id="recent-sessions-table" class="table">
+                <thead>
+                  <tr>
+                    <th onclick="sortTable(0)">Datum</th>
+                    <th onclick="sortTable(1)">Spieler</th>
+                    <th onclick="sortTable(2)">Dauer (Min)</th>
+                    <th onclick="sortTable(3)">RPE</th>
+                    <th onclick="sortTable(4)">Training Load</th>
+                    <th>Notizen</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-sessions-tbody">
+                  <tr><td colspan="6" style="text-align:center;color:var(--color-text-secondary)">Keine Sessions vorhanden</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- PLAYERS Section -->
+        <section id="players" class="section">
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__header">
+                <h3>Neuen Spieler hinzufügen</h3>
+              </div>
+              <div class="card__body">
+                <form id="player-form">
+                  <div class="form-group">
+                    <label class="form-label" for="player-name">Spielername</label>
+                    <input type="text" id="player-name" class="form-control" placeholder="Name eingeben..." required>
+                  </div>
+                  <button type="submit" class="btn btn--primary btn--full-width">Spieler hinzufügen</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__header">
+                <h3>Spielerliste</h3>
+              </div>
+              <div class="card__body">
+                <div id="player-list" class="player-list">
+                  Keine Spieler vorhanden
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SESSIONS Section -->
+        <section id="sessions" class="section">
+          <div class="card">
+            <div class="card__header">
+              <h3>Trainingseinheit hinzufügen</h3>
+            </div>
+            <div class="card__body">
+              <form id="session-form">
+                <div class="grid grid--2">
+                  <div class="form-group">
+                    <label class="form-label" for="session-player">Spieler</label>
+                    <select id="session-player" class="form-control" required>
+                      <option value="">Bitte wählen...</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="session-date">Datum</label>
+                    <input type="date" id="session-date" class="form-control" required>
+                  </div>
+                </div>
+
+                <div class="grid grid--2">
+                  <div class="form-group">
+                    <label class="form-label" for="session-duration">Dauer (Minuten)</label>
+                    <input type="number" id="session-duration" class="form-control" min="1" placeholder="z.B. 90" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="session-rpe">RPE (1-10)</label>
+                    <input type="range" id="session-rpe" class="form-control" min="1" max="10" value="5" required>
+                    <div class="rpe-display">
+                      <span id="rpe-value">5</span> - <span id="rpe-description">Hart</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Training Load (automatisch berechnet)</label>
+                  <div class="training-load-display" id="calculated-load">0</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="session-notes">Notizen (optional)</label>
+                  <textarea id="session-notes" class="form-control" rows="3" placeholder="Zusätzliche Informationen..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--full-width">Session hinzufügen</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 24px;">
+            <div class="card__header">
+              <h3>RPE Skala Referenz</h3>
+            </div>
+            <div class="card__body">
+              <div class="rpe-reference">
+                <div><strong>0:</strong> Ruhe</div>
+                <div><strong>1:</strong> Sehr, sehr leicht</div>
+                <div><strong>2:</strong> Leicht</div>
+                <div><strong>3:</strong> Moderat</div>
+                <div><strong>4:</strong> Etwas hart</div>
+                <div><strong>5:</strong> Hart</div>
+                <div><strong>7:</strong> Sehr hart</div>
+                <div><strong>10:</strong> Maximal</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS Section -->
+        <section id="settings" class="section">
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__header">
+                <h3>Daten exportieren</h3>
+              </div>
+              <div class="card__body">
+                <p>Exportieren Sie alle aktuellen Daten als JSON-Datei zur Sicherung.</p>
+                <button class="btn btn--primary btn--full-width" id="export-btn">Daten exportieren</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__header">
+                <h3>Daten importieren</h3>
+              </div>
+              <div class="card__body">
+                <p>Importieren Sie eine zuvor exportierte JSON-Datei.</p>
+                <input type="file" id="import-file" accept=".json" style="margin-bottom: 12px;">
+                <button class="btn btn--primary btn--full-width" onclick="document.getElementById('import-file').click()">Datei auswählen</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__header">
+                <h3>⚠️ Daten löschen</h3>
+              </div>
+              <div class="card__body">
+                <p>Achtung: Diese Aktion löscht alle Spieler und Sessions unwiderruflich!</p>
+                <button class="btn btn--outline btn--full-width" id="clear-data-btn">Alle Daten löschen</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Version Switcher -->
+  <div class="version-switcher">
+    <button class="version-switcher-btn" onclick="switchToTablet()">
+      📱 Zur Tablet-Ansicht
+    </button>
+  </div>
+
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <!-- Order: Chart.js first, then app.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+  <script>
+    function switchToTablet() {
+      localStorage.setItem('preferred-version', 'tablet');
+      window.location.href = '/tablet.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Training Load Tracker - Tablet</title>
+  <link rel="stylesheet" href="style-tablet.css">
+  <style>
+    /* Version Switcher */
+    .version-switcher {
+      position: fixed;
+      bottom: 20px;
+
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .version-switcher-btn {
+      padding: 12px 20px;
+      background: rgba(33,128,141,0.9);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 200ms ease;
+    }
+
+    .version-switcher-btn:hover {
+      background: rgba(33,128,141,1);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="app tablet-mode">
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <h1>⚽ Training Tracker <span style="font-size:14px; opacity:0.7;">(Tablet)</span></h1>
+        <nav class="nav">
+          <div class="nav-item active" data-section="quick-entry">Schnelleingabe</div>
+          <div class="nav-item" data-section="dashboard">Übersicht</div>
+          <div class="nav-item" data-section="players">Spieler</div>
+          <div class="nav-item" data-section="settings">Einstellungen</div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="container">
+
+        <!-- QUICK ENTRY Section (Tablet optimiert) -->
+        <section id="quick-entry" class="section active">
+          <div class="quick-entry-container">
+
+            <!-- Step 1: Spieler auswählen -->
+            <div class="step-card" id="step-player">
+              <div class="step-header">
+                <span class="step-number">1</span>
+                <h2>Spieler auswählen</h2>
+              </div>
+              <div id="player-grid" class="player-grid">
+                <!-- Wird dynamisch gefüllt -->
+              </div>
+              <div class="selected-player-display" id="selected-player-display" style="display:none;">
+                <div class="selected-icon">✓</div>
+                <div class="selected-name" id="selected-player-name"></div>
+                <button class="btn btn--secondary btn--sm" onclick="clearPlayerSelection()">Ändern</button>
+              </div>
+            </div>
+
+            <!-- Step 2: Trainingsdauer eingeben -->
+            <div class="step-card" id="step-duration">
+              <div class="step-header">
+                <span class="step-number">2</span>
+                <h2>Trainingsdauer (Minuten)</h2>
+              </div>
+              <div class="duration-display">
+                <input type="text" id="duration-input" class="duration-input" value="0" readonly>
+                <span class="duration-unit">Minuten</span>
+              </div>
+              <div class="numpad">
+                <button class="numpad-btn" onclick="addDuration('1')">1</button>
+                <button class="numpad-btn" onclick="addDuration('2')">2</button>
+                <button class="numpad-btn" onclick="addDuration('3')">3</button>
+                <button class="numpad-btn" onclick="addDuration('4')">4</button>
+                <button class="numpad-btn" onclick="addDuration('5')">5</button>
+                <button class="numpad-btn" onclick="addDuration('6')">6</button>
+                <button class="numpad-btn" onclick="addDuration('7')">7</button>
+                <button class="numpad-btn" onclick="addDuration('8')">8</button>
+                <button class="numpad-btn" onclick="addDuration('9')">9</button>
+                <button class="numpad-btn numpad-btn--clear" onclick="clearDuration()">⌫</button>
+                <button class="numpad-btn" onclick="addDuration('0')">0</button>
+                <button class="numpad-btn numpad-btn--quick" onclick="setQuickDuration(90)">90</button>
+              </div>
+              <div class="quick-durations">
+                <button class="btn btn--outline" onclick="setQuickDuration(30)">30 Min</button>
+                <button class="btn btn--outline" onclick="setQuickDuration(45)">45 Min</button>
+                <button class="btn btn--outline" onclick="setQuickDuration(60)">60 Min</button>
+                <button class="btn btn--outline" onclick="setQuickDuration(75)">75 Min</button>
+              </div>
+            </div>
+
+            <!-- Step 3: RPE auswählen -->
+            <div class="step-card" id="step-rpe">
+              <div class="step-header">
+                <span class="step-number">3</span>
+                <h2>Belastung (RPE)</h2>
+              </div>
+              <div class="rpe-grid">
+                <button class="rpe-btn rpe-btn--1" data-rpe="1" onclick="selectRPE(1)">
+                  <span class="rpe-btn-number">1</span>
+                  <span class="rpe-btn-text">Sehr leicht</span>
+                </button>
+                <button class="rpe-btn rpe-btn--2" data-rpe="2" onclick="selectRPE(2)">
+                  <span class="rpe-btn-number">2</span>
+                  <span class="rpe-btn-text">Leicht</span>
+                </button>
+                <button class="rpe-btn rpe-btn--3" data-rpe="3" onclick="selectRPE(3)">
+                  <span class="rpe-btn-number">3</span>
+                  <span class="rpe-btn-text">Moderat</span>
+                </button>
+                <button class="rpe-btn rpe-btn--4" data-rpe="4" onclick="selectRPE(4)">
+                  <span class="rpe-btn-number">4</span>
+                  <span class="rpe-btn-text">Etwas hart</span>
+                </button>
+                <button class="rpe-btn rpe-btn--5" data-rpe="5" onclick="selectRPE(5)">
+                  <span class="rpe-btn-number">5</span>
+                  <span class="rpe-btn-text">Hart</span>
+                </button>
+                <button class="rpe-btn rpe-btn--6" data-rpe="6" onclick="selectRPE(6)">
+                  <span class="rpe-btn-number">6</span>
+                  <span class="rpe-btn-text">Hart</span>
+                </button>
+                <button class="rpe-btn rpe-btn--7" data-rpe="7" onclick="selectRPE(7)">
+                  <span class="rpe-btn-number">7</span>
+                  <span class="rpe-btn-text">Sehr hart</span>
+                </button>
+                <button class="rpe-btn rpe-btn--8" data-rpe="8" onclick="selectRPE(8)">
+                  <span class="rpe-btn-number">8</span>
+                  <span class="rpe-btn-text">Sehr hart</span>
+                </button>
+                <button class="rpe-btn rpe-btn--9" data-rpe="9" onclick="selectRPE(9)">
+                  <span class="rpe-btn-number">9</span>
+                  <span class="rpe-btn-text">Sehr hart</span>
+                </button>
+                <button class="rpe-btn rpe-btn--10" data-rpe="10" onclick="selectRPE(10)">
+                  <span class="rpe-btn-number">10</span>
+                  <span class="rpe-btn-text">Maximal</span>
+                </button>
+              </div>
+              <div class="selected-rpe-display" id="selected-rpe-display" style="display:none;">
+                <div class="rpe-summary">
+                  <span class="rpe-summary-label">Gewählter RPE:</span>
+                  <span class="rpe-summary-value" id="selected-rpe-value">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Training Load Preview & Submit -->
+            <div class="step-card" id="step-submit">
+              <div class="training-load-preview">
+                <h3>Training Load</h3>
+                <div class="training-load-calc">
+                  <span id="preview-duration">0</span> Min × RPE <span id="preview-rpe">0</span> = 
+                  <strong id="preview-load">0</strong>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--xl btn--full-width" id="submit-session-btn" onclick="submitQuickSession()">
+                ✓ Session speichern
+              </button>
+              <button class="btn btn--secondary btn--full-width" onclick="resetQuickEntry()">
+                Abbrechen
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- DASHBOARD Section -->
+        <section id="dashboard" class="section">
+          <h2>Dashboard Übersicht</h2>
+
+          <div class="grid grid--4">
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="total-players">0</div>
+                <div class="stat-label">Gesamtzahl Spieler</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="total-sessions">0</div>
+                <div class="stat-label">Gesamte Sessions</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="avg-rpe">0</div>
+                <div class="stat-label">Durchschnittlicher RPE</div>
+              </div>
+            </div>
+            <div class="card stat-card">
+              <div class="card__body">
+                <div class="stat-value" id="avg-load">0</div>
+                <div class="stat-label">Ø Trainingsbelastung</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 24px;">
+            <div class="card__header">
+              <h3>Letzte Sessions</h3>
+            </div>
+            <div class="card__body">
+              <table class="table" id="recent-sessions-table">
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th>Spieler</th>
+                    <th>Dauer</th>
+                    <th>RPE</th>
+                    <th>Load</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-sessions-tbody">
+                  <tr><td colspan="5">Keine Sessions vorhanden</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- PLAYERS Section -->
+        <section id="players" class="section">
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__header">
+                <h3>Neuen Spieler hinzufügen</h3>
+              </div>
+              <div class="card__body">
+                <form id="player-form">
+                  <div class="form-group">
+                    <label class="form-label" for="player-name">Spielername</label>
+                    <input type="text" id="player-name" class="form-control form-control--lg" placeholder="Name eingeben..." required>
+                  </div>
+                  <button type="submit" class="btn btn--primary btn--full-width">Spieler hinzufügen</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__header">
+                <h3>Spielerliste</h3>
+              </div>
+              <div class="card__body">
+                <div id="player-list" class="player-list">
+                  Keine Spieler vorhanden
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS Section -->
+        <section id="settings" class="section">
+          <div class="grid grid--2">
+            <div class="card">
+              <div class="card__header">
+                <h3>Daten exportieren</h3>
+              </div>
+              <div class="card__body">
+                <p>Exportieren Sie alle aktuellen Daten als JSON-Datei zur Sicherung.</p>
+                <button class="btn btn--primary btn--full-width" id="export-btn">Daten exportieren</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__header">
+                <h3>Daten importieren</h3>
+              </div>
+              <div class="card__body">
+                <p>Importieren Sie eine zuvor exportierte JSON-Datei.</p>
+                <div class="file-input">
+                  <button class="btn btn--primary btn--full-width">Datei auswählen</button>
+                  <input type="file" id="import-file" accept=".json">
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__header">
+                <h3>⚠️ Daten löschen</h3>
+              </div>
+              <div class="card__body">
+                <p>Achtung: Diese Aktion löscht alle Spieler und Sessions unwiderruflich!</p>
+                <button class="btn btn--outline btn--full-width" id="clear-data-btn">Alle Daten löschen</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Version Switcher -->
+  <div class="version-switcher">
+    <button class="version-switcher-btn" onclick="switchToDesktop()">
+      💻 Zur Desktop-Ansicht
+    </button>
+  </div>
+
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <script src="app_tablet.js"></script>
+  <script>
+    function switchToDesktop() {
+      localStorage.setItem('preferred-version', 'desktop');
+      window.location.href = '/desktop.html';
+    }
+  </script>
+</body>
+</html>

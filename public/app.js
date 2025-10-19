@@ -229,6 +229,7 @@ function updateOverviewStats() {
   document.getElementById('avg-load').textContent = avgLoad;
 }
 
+/*************  ✨ Windsurf Command 🌟  *************/
 function updateRecentSessions() {
   const all = [];
   players.forEach(player => {
@@ -238,6 +239,7 @@ function updateRecentSessions() {
   });
   all.sort((a,b) => new Date(b.date) - new Date(a.date));
   const tbody = document.getElementById('recent-sessions-tbody');
+  if (!tbody) return;
   if (all.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--color-text-secondary)">Keine Sessions vorhanden</td></tr>';
     return;
@@ -254,6 +256,7 @@ function updateRecentSessions() {
     </tr>`;
   }).join('');
 }
+/*******  45b1bfb5-5f25-472b-8dba-f5f770183562  *******/
 
 function updatePlayerStats() {
   const playerId = document.getElementById('dashboard-player-select').value;
@@ -336,7 +339,12 @@ function updatePlayerStats() {
 
 
 function updateChart(sessions) {
-  const ctx = document.getElementById('load-chart').getContext('2d');
+  const ctxElement = document.getElementById('load-chart');
+  if (!ctxElement) {
+    console.error('Could not find canvas element with id "load-chart"');
+    return;
+  }
+  const ctx = ctxElement.getContext('2d');
   if (currentChart) currentChart.destroy();
   if (!sessions || sessions.length === 0) {
     currentChart = new Chart(ctx, {
